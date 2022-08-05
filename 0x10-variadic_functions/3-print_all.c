@@ -38,7 +38,7 @@ void print_all(const char * const format, ...)
 				hasprint = 0;
 				break;
 		}
-		i++
+		i++;
 		if (format[i] && hasprint)
 			printf(", ");
 	}
