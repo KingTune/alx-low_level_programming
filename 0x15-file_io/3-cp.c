@@ -2,90 +2,55 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-
-#include <stdio.h>
 #include <stdlib.h>
-#include "main.h"
+#include <stdio.h>
 
 /**
- * main - function that appends text at the end of a file.
- *
- * @argc: count arguments of command line
- * @argv: array of arguments of command line
- *
- * Return:0 or 1 on failure
+ * main - main file that copy file
+ * @argc: arguments input.
+ * @argv: pointers arguments. 
+ * Return: return 0 if all ok.
  */
 int main(int argc, char *argv[])
 {
-	int file_from, file_to, i, c;
-	char buf[1024];
-	ssize_t re, wr;
+	int fgo, forigin, checkorigin, checkgo;
+	int checkerw, checkerr;
+	char buffer[1024];
 
 	if (argc != 3)
-	{
-		dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n");
-		exit(97);
-	}
+		dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n"), exit(97);
 
-	for (i = 0; i < 1024; i++)
-		buf[i] = 0;
-
-	file_from = open(argv[1], O_RDONLY);
-	if (file_from == -1)
+	forigin = open(argv[1], O_RDONLY);
+	if (forigin == -1)
 	{
-		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n",
-			argv[1]);
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
 		exit(98);
 	}
 
-	file_to = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, 0664);
-	if (file_to == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't write to %s\n",
-			argv[2]);
-		exit(99);
-	}
+	fgo = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0664);
+	if (fgo == -1)
+		dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]), exit(99);
 
-	re = read(file_from, buf, 1024);
-	if (re == -1)
+	while ((checkerr = read(forigin, buffer, 1024)) > 0)
 	{
-		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n",
-			argv[1]);
-		exit(98);
-	}
-	while (re)
-	{
-		wr = write(file_to, buf, re);
-		if (wr == -1)
+		checkerw = write(fgo, buffer, checkerr);
+		if (checkerw != checkerr)
 		{
-			dprintf(STDERR_FILENO, "Error: Can't write to %s\n",
-				argv[2]);
+			dprintf(STDERR_FILENO, "Error: Can't write to %s\n", argv[2]);
 			exit(99);
 		}
-
-		re = read(file_from, buf, 1024);
-		if (re == -1)
-		{
-			dprintf(STDERR_FILENO,
-				"Error: Can't read from file %s\n", argv[1]);
-			exit(98);
-		}
-
 	}
-
-	c = close(file_from);
-	if (c == -1)
+	if (checkerr == -1)
 	{
-		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_from);
-		exit(100);
+		dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", argv[1]);
+		exit(98);
 	}
 
-	c = close(file_to);
-	if (c == -1)
-	{
-		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", file_to);
-		exit(100);
-	}
-
+	checkorigin = close(forigin);
+	if (checkorigin == -1)
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", forigin), exit(100);
+	checkgo = close(fgo);
+	if (checkgo == -1)
+		dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fgo), exit(100);
 	return (0);
 }
